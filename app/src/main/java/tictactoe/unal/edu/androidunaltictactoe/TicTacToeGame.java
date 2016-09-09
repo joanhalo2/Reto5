@@ -110,10 +110,98 @@ public class TicTacToeGame {
      * to actually make the computer move to that location.
      * @return The best move for the computer to make (0-8).
      */
-    public int getComputerMove(){
+
+    public int getComputerMove() {
+
+        int move = -1;
+
+
+        if (mDifficultyLevel == DifficultyLevel.Easy)
+
+            move = getRandomMove();
+
+        else if (mDifficultyLevel == DifficultyLevel.Harder) {
+
+            move = getWinningMove();
+
+            if (move == -1){
+                move = getRandomMove();
+            }
+
+        } else if (mDifficultyLevel == DifficultyLevel.Expert) {
+
+            move = getWinningMove();
+
+            if (move == -1){
+                move = getBlockingMove();
+            }
+
+            if (move == -1){
+                move = getRandomMove();
+            }
+
+        }
+
+
+        return move;
+    }
+
+    public int getRandomMove(){
+        int i;
+        do
+        {
+            i = mRand.nextInt(BOARD_SIZE);
+        } while (mBoard[i] == HUMAN_PLAYER || mBoard[i] == COMPUTER_PLAYER);
+
+        System.out.println("Computer is moving to " + (i + 1));
+
+        return i;
+    }
+
+    public int getWinningMove(){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (mBoard[i] != HUMAN_PLAYER && mBoard[i] != COMPUTER_PLAYER) {
+                char curr = mBoard[i];
+                mBoard[i] = COMPUTER_PLAYER;
+                if (checkForWinner() == 3) {
+                    System.out.println("Computer is moving to " + (i + 1));
+                    mBoard[i] = curr;
+                    return i;
+                }else{
+                    mBoard[i] = curr;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    public int getBlockingMove(){
+        for (int i = 0; i < BOARD_SIZE; i++) {
+            if (mBoard[i] != HUMAN_PLAYER && mBoard[i] != COMPUTER_PLAYER) {
+                char curr = mBoard[i];   // Save the current number
+                mBoard[i] = HUMAN_PLAYER;
+                if (checkForWinner() == 2) {
+                    mBoard[i] = COMPUTER_PLAYER;
+                    System.out.println("Computer is moving to " + (i + 1));
+                    mBoard[i] = curr;
+                    return i;
+                }else{
+                    mBoard[i] = curr;
+                }
+
+            }
+        }
+
+        return -1;
+
+    }
+
+    public int getComputerMoveOld(){
         int move;
 
         // First see if there's a move O can make to win
+
         for (int i = 0; i < BOARD_SIZE; i++) {
             if (mBoard[i] != HUMAN_PLAYER && mBoard[i] != COMPUTER_PLAYER) {
                 char curr = mBoard[i];
@@ -122,8 +210,10 @@ public class TicTacToeGame {
                     System.out.println("Computer is moving to " + (i + 1));
                     return i;
                 }
-                else
+                else{
                     mBoard[i] = curr;
+                }
+
             }
         }
 
@@ -302,4 +392,17 @@ public class TicTacToeGame {
     public static void main(String[] args) {
         new TicTacToeGame();
     }*/
+
+    public DifficultyLevel getDifficultyLevel() {
+
+        return mDifficultyLevel;
+
+    }
+
+    public void setDifficultyLevel(DifficultyLevel difficultyLevel) {
+
+        mDifficultyLevel = difficultyLevel;
+    }
 }
+
+

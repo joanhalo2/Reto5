@@ -24,6 +24,12 @@ public class TicTacToeGame {
 
     private Random mRand;
 
+    // The computer&#39;s difficulty levels
+    public enum DifficultyLevel {Easy, Harder, Expert};
+
+    // Current difficulty level
+    private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
+
     public TicTacToeGame() {
 
         // Seed the random number generator

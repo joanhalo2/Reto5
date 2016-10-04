@@ -4,12 +4,16 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -24,8 +28,17 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
     // Represents the internal state of the game
     private TicTacToeGame mGame;
 
+    private BoardView mBoardView;
+
+    // Listen for touches on the board
+    private OnTouchListener mTouchListener;
+
     // Buttons making up the board
-    private Button mBoardButtons[];
+    //private Button mBoardButtons[];
+
+    MediaPlayer mHumanMediaPlayer;
+
+    MediaPlayer mComputerMediaPlayer;
 
     // Various text displayed
     private TextView mInfoTextView;
@@ -45,6 +58,8 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
     static final int DIALOG_QUIT_ID = 1;
 
     private int selected;//-1,0,1,2
+
+    private boolean mGameOver;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -57,6 +72,9 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_android_tic_tac_toe);
 
+
+
+        /*
         mBoardButtons = new Button[TicTacToeGame.BOARD_SIZE];
         mBoardButtons[0] = (Button) findViewById(R.id.one);
         mBoardButtons[1] = (Button) findViewById(R.id.two);
@@ -67,6 +85,7 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         mBoardButtons[6] = (Button) findViewById(R.id.seven);
         mBoardButtons[7] = (Button) findViewById(R.id.eight);
         mBoardButtons[8] = (Button) findViewById(R.id.nine);
+        */
 
         mInfoTextView = (TextView) findViewById(R.id.information);
 
@@ -80,6 +99,12 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         mScoreAndroidTextView = (TextView) findViewById(R.id.scoreComputer);
 
         mGame = new TicTacToeGame();
+        mTouchListener = new OnTouchListener();
+
+        mBoardView = (BoardView) findViewById(R.id.board);
+        mBoardView.setGame(mGame);
+        // Listen for touches on the board
+        mBoardView.setOnTouchListener(mTouchListener);
 
         menuNuevoJuego = getResources().getString(R.string.menu_new_game);
         menuResetScores = getResources().getString(R.string.menu_reset_scores);
@@ -93,17 +118,20 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         selected = -1;
+        mGameOver = false;
     }
 
     private void startNewGame() {
         mGame.clearBoard();
+        mBoardView.invalidate();
+        mGameOver = false;
 
         // Reset all buttons
-        for (int i = 0; i < mBoardButtons.length; i++) {
+        /*for (int i = 0; i < mBoardButtons.length; i++) {
             mBoardButtons[i].setText("");
             mBoardButtons[i].setEnabled(true);
             mBoardButtons[i].setOnClickListener(new ButtonClickListener(i));
-        }
+        }*/
 
         // Human goes first
         mInfoTextView.setText(R.string.first_human);
@@ -128,12 +156,12 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         mScoreAndroidTextView.setText(String.valueOf(androidScore));
     }
 
-    private void disableButtons() {
+    /*private void disableButtons() {
         // Disable all buttons
         for (int i = 0; i < mBoardButtons.length; i++) {
             mBoardButtons[i].setEnabled(false);
         }
-    }
+    }*/
 
     @Override
     public void onStart() {
@@ -176,7 +204,72 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
     }
 
 
+    private class OnTouchListener implements View.OnTouchListener {
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            // Determine which cell was touched
+
+            int col = (int) event.getX() / mBoardView.getBoardCellWidth();
+
+            int row = (int) event.getY() / mBoardView.getBoardCellHeight();
+
+            int pos = row * 3 + col;
+
+            if (!mGameOver && setMove(TicTacToeGame.HUMAN_PLAYER, pos)) {
+                // If no winner yet, let the computer make a move
+                int winner = mGame.checkForWinner();
+                if (winner == 0) {
+
+                    //delay
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        public void run() {
+                            //Log.v(LOG_TAG, "Hello");
+                        }
+
+                    }, 4000);
+
+
+
+                    mInfoTextView.setText(R.string.turn_computer);
+                    int move = mGame.getComputerMove();
+                    setMove(TicTacToeGame.COMPUTER_PLAYER, move);
+                    winner = mGame.checkForWinner();
+                }
+
+                if (winner == 0) {
+                    mInfoTextView.setText(R.string.turn_human);
+                } else {
+
+                    //there is a winner
+                    mGameOver = true;
+                    if (winner == 1) {
+                        mInfoTextView.setText(R.string.result_tie);
+                        tieScore++;
+                    } else if (winner == 2) {
+                        mInfoTextView.setText(R.string.result_human_wins);
+                        humanScore++;
+                    } else if (winner == 3) {
+                        mInfoTextView.setText(R.string.result_computer_wins);
+                        androidScore++;
+                    }
+
+                    //disableButtons();
+                    updateScores();
+
+                }
+
+            }
+            // So we aren';t notified of continued events when finger is moved
+            return false;
+        }
+    }
+
+
+
     // Handles clicks on the game board buttons
+    /*
     private class ButtonClickListener implements View.OnClickListener {
         int location;
 
@@ -221,17 +314,21 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         }
 
 
-    }
+    }*/
 
-    private void setMove(char player, int location) {
+    private boolean setMove(char player, int location) {
 
-        mGame.setMove(player, location);
-        mBoardButtons[location].setEnabled(false);
-        mBoardButtons[location].setText(String.valueOf(player));
-        if (player == TicTacToeGame.HUMAN_PLAYER)
-            mBoardButtons[location].setTextColor(Color.rgb(0, 200, 0));
-        else
-            mBoardButtons[location].setTextColor(Color.rgb(200, 0, 0));
+        if (mGame.setMove(player, location)) {
+                if(player == TicTacToeGame.COMPUTER_PLAYER){
+                    mComputerMediaPlayer.start();
+                }else if(player == TicTacToeGame.HUMAN_PLAYER){
+                    mHumanMediaPlayer.start();
+                }
+                mBoardView.invalidate(); // Redraw the board
+                return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -374,5 +471,29 @@ public class AndroidTicTacToeActivity extends AppCompatActivity {
         }
 
         return dialog;
+    }
+
+    @Override
+
+    protected void onResume() {
+
+        super.onResume();
+
+        mHumanMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.wip_sound);
+
+        mComputerMediaPlayer = MediaPlayer.create(getApplicationContext(), R.raw.kick_sound);
+
+    }
+
+    @Override
+
+    protected void onPause() {
+
+        super.onPause();
+
+        mHumanMediaPlayer.release();
+
+        mComputerMediaPlayer.release();
+
     }
 }

@@ -25,7 +25,7 @@ public class TicTacToeGame {
     private Random mRand;
 
     // The computer&#39;s difficulty levels
-    public enum DifficultyLevel {Easy, Harder, Expert};
+    public enum DifficultyLevel {Easy, Harder, Expert}
 
     // Current difficulty level
     private DifficultyLevel mDifficultyLevel = DifficultyLevel.Expert;
@@ -99,11 +99,14 @@ public class TicTacToeGame {
      * @param player - The HUMAN_PLAYER or COMPUTER_PLAYER
      * @param location - The location (0-8) to place the move
      */
-    public void setMove(char player, int location){
+    public boolean setMove(char player, int location){
 
         if(location < mBoard.length && mBoard[location] == OPEN_SPOT){
             mBoard[location] = player;
+            return true;
         }
+
+        return false;
     }
 
     /** Return the best move for the computer to make. You must call setMove()
@@ -402,6 +405,14 @@ public class TicTacToeGame {
     public void setDifficultyLevel(DifficultyLevel difficultyLevel) {
 
         mDifficultyLevel = difficultyLevel;
+    }
+
+    public char getBoardOccupant(int index){
+        if(index<=BOARD_SIZE){
+            return mBoard[index];
+        }
+
+        return OPEN_SPOT;
     }
 }
 
